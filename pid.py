@@ -1,6 +1,8 @@
 import RPi.GPIO as GPIO
 import time
 
+# Setup GPIO mode
+GPIO.setmode(GPIO.BCM)
 # GPIO pin assignments for motors and sensors
 IN1 = 17
 IN2 = 18
@@ -14,9 +16,24 @@ SENSOR3 = 13
 SENSOR4 = 20
 SENSOR5 = 19
 
-# Setup GPIO mode
-GPIO.setmode(GPIO.BCM)
 
+# Define servo pins
+servos = {
+    "base": 17,
+    "shoulder": 18,
+    "elbow": 27,
+    "wrist": 22,
+    "gripper": 23
+}
+# Set up servo pins
+for pin in servos.values():
+    GPIO.setup(pin, GPIO.OUT)
+
+# Set up PWM channels with a frequency of 50Hz
+pwm = {name: GPIO.PWM(pin, 50) for name, pin in servos.items()}
+for p in pwm.values():
+    p.start(0)
+    
 # Setup motor pins
 GPIO.setup(IN1, GPIO.OUT)
 GPIO.setup(IN2, GPIO.OUT)
@@ -38,6 +55,48 @@ pwmB = GPIO.PWM(ENB, 1000)  # 1000 Hz frequency
 pwmA.start(0)  # Start PWM with 0% duty cycle
 pwmB.start(0)  # Start PWM with 0% duty cycle
 
+def set_servo_angle(servo_name, angle):
+    duty_cycle = 2 + (angle / 18)
+    pwm[servo_name].ChangeDutyCycle(duty_cycle)
+    time.sleep(0.5)  # Wait for the servo to reach the position
+    pwm[servo_name].ChangeDutyCycle(0)  # Turn off PWM signal to stop jitter
+
+def pick_object():
+    # Define the sequence of movements for picking up an object
+    # Adjust these angles as per your robotic arm's configuration
+    set_servo_angle("base", 90)      # Rotate base to the object
+    set_servo_angle("shoulder", 45)  # Move shoulder down to reach the object
+    set_servo_angle("elbow", 90)     # Adjust elbow to reach the object
+    set_servo_angle("wrist", 0)      # Position wrist for picking
+    set_servo_angle("gripper", 30)   # Open gripper
+
+    time.sleep(1)  # Wait for a moment to ensure the arm is in position
+
+    set_servo_angle("gripper", 90)   # Close gripper to grasp the object
+
+    time.sleep(1)  # Ensure the object is gripped
+
+    set_servo_angle("shoulder", 90)  # Lift the object
+    set_servo_angle("elbow", 45)     # Adjust elbow to lift the object
+    set_servo_angle("wrist", 90)     # Adjust wrist to lift the object
+
+    time.sleep(1)  # Wait for the arm to stabilize
+def place_object():
+    set_servo_angle("base", 0)       # Rotate base to the target position
+    set_servo_angle("shoulder", 45)  # Move shoulder down to place the object
+    set_servo_angle("elbow", 90)     # Adjust elbow to place the object
+    set_servo_angle("wrist", 0)      # Position wrist for placing
+    set_servo_angle("gripper", 30)   # Open gripper to release the object
+
+    time.sleep(1)  # Ensure the object is released
+
+    # Return to the initial position
+    set_servo_angle("shoulder", 90)
+    set_servo_angle("elbow", 90)
+    set_servo_angle("wrist", 90)
+    set_servo_angle("gripper", 0)
+    time.sleep(1)  # Wait for the arm to stabilize
+    
 def set_speed(motorA_speed, motorB_speed):
     pwmA.ChangeDutyCycle(motorA_speed)
     pwmB.ChangeDutyCycle(motorB_speed)

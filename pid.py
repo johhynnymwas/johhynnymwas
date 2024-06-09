@@ -269,7 +269,7 @@ def line_following():
             print(f"T junction count: {t_junction_count}")
             time.sleep(1.5)
 
-        elif sensor_values[0] == 1 and sensor_values[2] == 1:  # Left L junction
+        elif sensor_values[1] == 1 and sensor_values[2] == 1:  # Left L junction
             print("Left L junction detected")
             stop()
             time.sleep(1.5)
@@ -279,7 +279,7 @@ def line_following():
             print(f"Left L junction count: {l_junction_left_count}")
             time.sleep(1.5)
 
-        elif sensor_values[4] == 1 and sensor_values[2] == 1:  # Right L junction
+        elif sensor_values[4] == 1 and sensor_values[5] == 1:  # Right L junction
             print("Right L junction detected")
             stop()
             time.sleep(1.5)

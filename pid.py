@@ -189,6 +189,10 @@ def turn_right():
             stop()
             break
     print("Right turn completed")
+def stop_right_wheel():
+    GPIO.output(IN3, GPIO.LOW)
+    GPIO.output(IN4, GPIO.LOW)
+    pwmB.ChangeDutyCycle(0)
 
 def about_turn():
     print("Performing about-turn")
@@ -254,6 +258,9 @@ def line_following():
             # Decide what to do at a T junction
             if t_junction_count == 1:
                 print("First T junction, making a right turn")
+                stop_right_wheel()  # Stop the right wheel
+                time.sleep(1.5)  # Adjust this delay as needed to handle the turn
+                print("Right wheel stopped at T junction")
                 turn_right()
 
             

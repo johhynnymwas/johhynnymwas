@@ -87,12 +87,58 @@ def calculate_error(sensor_values):
     error = sum(weight * value for weight, value in zip(WEIGHTS, sensor_values))
     return error
 
+def detect_junction(sensor_values):
+    # Define patterns for different junction types
+    CROSS_JUNCTION = [1, 1, 1, 1, 1]
+    T_JUNCTION = [0, 1, 1, 1, 0]
+    LEFT_L_JUNCTION = [1, 0, 1, 0, 0]
+    RIGHT_L_JUNCTION = [0, 0, 1, 0, 1]
+
+    if sensor_values == CROSS_JUNCTION:
+        return "Cross"
+    elif sensor_values[1:4] == [1, 1, 1]:
+        return "T"
+    elif sensor_values[0] == 1 and sensor_values[2] == 1:
+        return "Left L"
+    elif sensor_values[4] == 1 and sensor_values[2] == 1:
+        return "Right L"
+    return "None"
+
 def line_following():
     global previous_error, integral, previous_time
 
     while True:
         sensor_values = sensor_readings()
         error = calculate_error(sensor_values)
+
+        junction = detect_junction(sensor_values)
+        if junction != "None":
+            print(f"{junction} junction detected")
+            stop()
+            time.sleep(1.5)
+            # Handle the junction appropriately
+            if junction == "Cross":
+                move_forward()
+                set_speed(BASE_SPEED, BASE_SPEED)
+                time.sleep(1.5)
+            elif junction == "T":
+                # Example action: turn right at T junction
+                print("Turning right at T junction")
+                GPIO.output(IN1, GPIO.HIGH)
+                GPIO.output(IN2, GPIO.LOW)
+                GPIO.output(IN3, GPIO.HIGH)
+                GPIO.output(IN4, GPIO.LOW)
+                set_speed(50, 50)
+                time.sleep(0.2)  # Initial delay
+                stop()
+            elif junction == "Left L":
+                move_forward()
+                set_speed(BASE_SPEED, BASE_SPEED)
+                time.sleep(1.5)
+            elif junction == "Right L":
+                move_forward()
+                set_speed(BASE_SPEED, BASE_SPEED)
+                time.sleep(1.5)
 
         current_time = time.time()
         dt = current_time - previous_time

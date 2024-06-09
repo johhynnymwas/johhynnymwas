@@ -16,14 +16,21 @@ SENSOR3 = 13
 SENSOR4 = 20
 SENSOR5 = 19
 
+# Define the GPIO pins for TRIG and ECHO
+TRIG = 25
+ECHO = 26
+
+# Set up the TRIG as output and ECHO as input
+GPIO.setup(TRIG, GPIO.OUT)
+GPIO.setup(ECHO, GPIO.IN)
 
 # Define servo pins
 servos = {
-    "base": 17,
-    "shoulder": 18,
-    "elbow": 27,
-    "wrist": 22,
-    "gripper": 23
+    "base":4 ,
+    "shoulder": 16,
+    "elbow":21 ,
+    "wrist": 7,
+    "gripper": 8
 }
 # Set up servo pins
 for pin in servos.values():
@@ -96,7 +103,27 @@ def place_object():
     set_servo_angle("wrist", 90)
     set_servo_angle("gripper", 0)
     time.sleep(1)  # Wait for the arm to stabilize
-    
+def measure_distance():
+    # Send a 10µs pulse to TRIG to start the measurement
+    GPIO.output(TRIG, True)
+    time.sleep(0.00001)
+    GPIO.output(TRIG, False)
+
+    # Wait for the ECHO pin to go high and record the start time
+    while GPIO.input(ECHO) == 0:
+        start_time = time.time()
+
+    # Wait for the ECHO pin to go low and record the end time
+    while GPIO.input(ECHO) == 1:
+        end_time = time.time()
+
+    # Calculate the duration of the pulse
+    pulse_duration = end_time - start_time
+
+    # Calculate the distance in cm (speed of sound is 34300 cm/s)
+    distance = (pulse_duration * 34300) / 2
+
+    return distance    
 def set_speed(motorA_speed, motorB_speed):
     pwmA.ChangeDutyCycle(motorA_speed)
     pwmB.ChangeDutyCycle(motorB_speed)
@@ -203,6 +230,10 @@ def line_following():
         error = calculate_error(sensor_values)
         # Print the error
         print(f"Sensor values: {sensor_values}, Error: {error}")
+        # Measure distance and print the result
+        dist = measure_distance()
+        print(f"Distance: {dist:.1f} cm")
+        time.sleep(1)  # Wait for 1 second before the next measurement
 
         # Detect different types of junctions
         if sensor_values == [1, 1, 1, 1, 1]:  # Cross junction

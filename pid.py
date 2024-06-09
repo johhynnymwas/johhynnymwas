@@ -90,17 +90,17 @@ def calculate_error(sensor_values):
 def detect_junction(sensor_values):
     # Define patterns for different junction types
     CROSS_JUNCTION = [1, 1, 1, 1, 1]
-    T_JUNCTION = [0, 1, 1, 1, 0]
-    LEFT_L_JUNCTION = [1, 0, 1, 0, 0]
-    RIGHT_L_JUNCTION = [0, 0, 1, 0, 1]
+    T_JUNCTION = [1, 1, 1, 0, 0]
+    LEFT_L_JUNCTION = [1, 1, 0, 0, 0]
+    RIGHT_L_JUNCTION = [0, 0, 0, 1, 1]
 
     if sensor_values == CROSS_JUNCTION:
         return "Cross"
-    elif sensor_values[1:4] == [1, 1, 1]:
+    elif sensor_values[0:2] == [1, 1, 1]:
         return "T"
-    elif sensor_values[0] == 1 and sensor_values[2] == 1:
+    elif sensor_values[0] == 1 and sensor_values[1] == 1:
         return "Left L"
-    elif sensor_values[4] == 1 and sensor_values[2] == 1:
+    elif sensor_values[4] == 1 and sensor_values[3] == 1:
         return "Right L"
     return "None"
 
